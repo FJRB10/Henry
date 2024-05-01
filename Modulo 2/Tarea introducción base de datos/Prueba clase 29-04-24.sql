@@ -1,3 +1,4 @@
+DROP DATABASE henry;
 
 CREATE DATABASE henry;
 
@@ -45,6 +46,7 @@ CREATE TABLE alumno (
     apellido VARCHAR (40) NOT NULL,
     fechaNacimiento DATE NOT NULL,
     fechaIngreso DATE,
+    idCohorte INT NOT NULL,
     PRIMARY KEY (idAlumno),
     FOREIGN KEY (idCohorte) REFERENCES cohorte(idCohorte)
 );
