@@ -253,43 +253,128 @@ VALUES (161,'41944781','Stephanie','Hurst','1986-11-23','2022-02-14',1243),
   (179,'402918667','Imani','Mack','2000-07-28','2022-01-29',1243),
   (180,'277347865','William','Long','2009-12-06','2022-02-09',1243);
   
+SELECT COUNT(*) FROM alumno;
+  
 -- 2do punto
 
 DELETE FROM cohorte WHERE idCohorte = 1245 OR idCohorte = 1246;
 SELECT * FROM cohorte WHERE idCohorte = 1245 OR idCohorte = 1246;
+-- SELECT * FROM cohore WHERE idCohorte IN (1245,1246);
 
 -- 3er punto
 
 SELECT * FROM alumno WHERE idCohorte = 1243;
 UPDATE alumno SET fechaIngreso = '2022-05-16' WHERE idCohorte = 1243;
 SELECT * FROM cohorte WHERE idCohorte = 1243;
+UPDATE cohorte SET fechaInicio = '2022-05-16' WHERE idCohorte = 1243;
 
 -- 4to punto
 
 SELECT * FROM alumno WHERE idAlumno = 165;
 UPDATE alumno SET apellido = 'Ramirez' WHERE idAlumno = 165;
 
+/*
+	En caso de tener que eliminar todos los registros de una tabla se utilizara el siguiente comando:
+    TRUNCATE TABLE 'Nombre de la tabla';
+*/
 -- 5to punto
 
 SELECT nombre, apellido, fechaIngreso FROM alumno WHERE idCohorte = 1243;
 
+CREATE VIEW alumnos_1243 AS
+SELECT  idAlumno, cedulaIdentidad, nombre, apellido, fechaIngreso FROM alumno WHERE idCohorte = 1243;
+
+SELECT * FROM alumnos_1243;
+
 -- 6to punto SIN RESOLVER
 
-SELECT idInstructor FROM cohorte WHERE idCarrera = 1;
+SELECT i.cedulaIdentidad, i.nombre, i.apellido, c.codigo FROM instructor i 
+INNER JOIN cohorte c ON i.idInstructor = c.idInstructor 
+WHERE c.idCarrera = 1;
 
--- 7mo punto DUDAS
+SELECT i.cedulaIdentidad, CONCAT(i.nombre, " ", i.apellido) AS nombre_completo, c.codigo FROM instructor i 
+INNER JOIN cohorte c ON i.idInstructor = c.idInstructor 
+WHERE c.idCarrera = 1;
+
+SELECT DISTINCT i.* FROM instructor i
+INNER JOIN cohorte c ON i.idInstructor = c.idInstructor 
+WHERE c.idCarrera = 1;
+
+SELECT DISTINCT i.* FROM instructor i
+INNER JOIN cohorte c ON i.idInstructor = c.idInstructor 
+INNER JOIN carrera car ON c.idCarrera = car.idCarrera
+WHERE car.nombre LIKE 'Full%';
+
+-- SELECT idInstructor FROM cohorte WHERE idCarrera = 1;
+
+-- 7mo punto
 
 SELECT * FROM alumno WHERE idCohorte = 1235;
+
+CREATE VIEW alumnos_1235 AS
+SELECT idAlumno, cedulaIdentidad, CONCAT(nombre, " ",apellido) AS nombre_completo, fechaIngreso 
+FROM alumno 
+WHERE idCohorte = 1235;
+
+SELECT * FROM alumnos_1235;
 
 -- 8vo punto
 
 SELECT * FROM alumno WHERE idCohorte = 1235 AND fechaIngreso LIKE '2019%';
 
+SELECT * FROM alumnos_1235 WHERE fechaingreso LIKE "2019%";
+
+SELECT * FROM alumnos_1235 WHERE YEAR(fechaingreso) = 2019;
+
 -- 9no punto DUDAS
 
-SELECT alumno.nombre, apellido, fechaNacimiento, carrera.nombre
-FROM alumno
-INNER JOIN cohorte
-ON cohorte=idCohorte
-INNER JOIN carrera
-ON carrera = idCarrera;
+SELECT a.nombre, a.apellido, a.fechaNacimiento, car.nombre
+FROM alumno a
+INNER JOIN cohorte c
+ON a.idCohorte = c.idCohorte
+INNER JOIN carrera car
+ON c.idCarrera = car.idCarrera;
+
+/* 
+	Coneste la siguientes interrogantes: 
+    a. ¿Que campos permiten que se puedan acceder al nombre de la carrera? 
+    b. ¿Que tipo de ralación existe entre el nombre la tabla cohortes y alumnos? 1:M
+    c. ¿Proponga dos opciones para filtrar el listado solo por los alumnos que pertenecen a 'Full Stack Developer', utilizando LIKE y NOT LIKE?, ¿Cual de las dos opciones es la manera correcta de hacerlo?, ¿Por que? 
+    d. ¿Proponga dos opciones para filtrar el listado solo por los alumnos que pertenecen a 'Full Stack Developer', utilizando " = " y " != "? ¿Cual de las dos opciones es la manera correcta de hacerlo?, ¿Por que? 
+    e. ¿Como emplearía el filtrado utilizando el campo idCarrera?
+*/
+
+-- c
+
+SELECT a.nombre, a.apellido, a.fechaNacimiento, car.nombre
+FROM alumno a
+INNER JOIN cohorte c
+ON a.idCohorte = c.idCohorte
+INNER JOIN carrera car
+ON c.idCarrera = car.idCarrera
+WHERE car.nombre LIKE 'Full%';
+
+/* Se utiliza LIKE porque es una bisqueda exacta y se utilizaría NO_LIKE 
+si fuera una busqueda de todos menos una*/
+
+-- d
+
+SELECT a.nombre, a.apellido, a.fechaNacimiento, car.nombre
+FROM alumno a
+INNER JOIN cohorte c
+ON a.idCohorte = c.idCohorte
+INNER JOIN carrera car
+ON c.idCarrera = car.idCarrera
+WHERE car.nombre = 'Full Stack Developer';
+
+/* Es la misma logica que el punto c*/
+
+-- e
+
+SELECT a.nombre, a.apellido, a.fechaNacimiento, car.nombre
+FROM alumno a
+INNER JOIN cohorte c
+ON a.idCohorte = c.idCohorte
+INNER JOIN carrera car
+ON c.idCarrera = car.idCarrera
+WHERE car.idCarrera = 1;
