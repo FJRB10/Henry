@@ -11,7 +11,7 @@ SELECT COUNT(idAlumno) FROM alumno;
 
 -- 3. ¿Cuantos alumnos tiene cada cohorte?
 
-SELECT idCohorte, COUNT(idAlumno) FROM alumno GROUP BY idCohorte;
+SELECT idCohorte, COUNT(idAlumno) FROM alumno GROUP BY idCohorte ORDER BY idCohorte DESC;
 
 /*
 	4. Confecciona un listado de los alumnos ordenado por los últimos alumnos que ingresaron, 
@@ -50,13 +50,13 @@ SELECT nombre FROM alumno ORDER BY fechaIngreso DESC LIMIT 1;
 */
 
 SELECT YEAR(fechaIngreso) AS año, COUNT(idAlumno) AS cantidad_alumnos FROM alumno 
-GROUP BY YEAR(fechaIngreso);
+GROUP BY año ORDER BY año ASC;
 
 
 -- 	9. ¿Cuantos alumnos ingresaron por semana a henry?, indique también el año. WEEKOFYEAR()
 
-SELECT YEAR(fechaIngreso) AS año, WEEKOFYEAR(fechaIngreso) AS semana, COUNT(idAlumno) FROM alumno 
-GROUP BY fechaIngreso ORDER BY año DESC, semana DESC;
+SELECT YEAR(fechaIngreso) AS año, WEEKOFYEAR(fechaIngreso) AS semana, COUNT(idAlumno) 
+FROM alumno GROUP BY fechaIngreso ORDER BY año DESC, semana DESC;
 
 -- 10. ¿En que años ingresaron más de 20 alumnos?
 
@@ -110,3 +110,15 @@ SELECT idCohorte, AVG(anios) FROM alumnos_anios GROUP BY idCohorte;
 
 SELECT nombre, apellido, fechaNacimiento, anios FROM alumnos_anios 
 WHERE anios > 23.2667 ORDER BY anios DESC;
+
+-- Declaración de varibales (Solo se guardan mientras dura la sesión)
+
+SET @edad_promedio = (SELECT AVG(TIMESTAMPDIFF(YEAR, fechaNacimiento, CURDATE())) FROM alumno);
+
+SELECT nombre, apellido, fechaNacimiento, anios FROM alumnos_anios
+WHERE anios > (SELECT @edad_promedio)
+ORDER BY anios DESC;
+
+SELECT nombre, apellido, fechaNacimiento, anios FROM alumnos_anios
+WHERE anios > @edad_promedio
+ORDER BY anios DESC;
