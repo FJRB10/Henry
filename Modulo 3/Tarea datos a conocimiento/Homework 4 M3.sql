@@ -107,7 +107,7 @@ IGNORE 1 LINES;
 
 /*PRODUCTOS*/
 
--- DROP TABLE productos;
+DROP TABLE productos;
 
 CREATE TABLE productos(
 IDProducto		INTEGER,

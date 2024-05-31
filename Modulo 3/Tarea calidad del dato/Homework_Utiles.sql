@@ -1,5 +1,7 @@
 -- Homework.
-use henry_m3;
+-- use henry_m3;
+USE tarea_4;
+
 -- 2)
 SET GLOBAL log_bin_trust_function_creators = 1;
 
