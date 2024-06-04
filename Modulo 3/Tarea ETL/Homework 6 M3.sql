@@ -281,12 +281,103 @@ SELECT * FROM aux_venta WHERE Motivo = 3;		-- Outliers Precio
 ALTER TABLE ventas ADD Outlier TINYINT NOT NULL DEFAULT '1' AFTER Cantidad;
 
 UPDATE ventas v INNER JOIN aux_venta a ON (v.IdVenta = a.IdVenta AND a.Motivo IN (2,3))
-SET v.Outlier = 0;			-- NO SE PUEDE EJECUTAR POR FALTA DE TIEMPO, ARROJA EL SIGUEINTE ERROR. Error Code: 2013. Lost connection to MySQL server during query
+SET v.Outlier = 0;
 
-SET SESSION net_read_timeout=600;
-SET SESSION net_write_timeout=600;
+-- NO SE PUEDE EJECUTAR POR FALTA DE TIEMPO, ARROJA EL SIGUEINTE ERROR. Error Code: 2013. Lost connection to MySQL server during query
+
+-- SET SESSION net_read_timeout=600;
+-- SET SESSION net_write_timeout=600;
 
 SET SQL_SAFE_UPDATES = 0;
 
 SELECT * FROM ventas WHERE Outlier != 1;
 
+SELECT tp.TipoProducto, AVG(v.Precio * v.Cantidad) AS PromedioConOutliers FROM ventas v
+	INNER JOIN productos p
+		ON (v.IdProducto = p.IdProducto)
+	INNER JOIN tipoproducto tp
+		ON (p.IdTipoProducto = tp.IdTipoProducto)
+GROUP BY tp.TipoProducto
+ORDER BY tp.TipoProducto;
+
+SELECT tp.TipoProducto, AVG(v.Precio * v.Cantidad) AS PromedioSinOutliers FROM ventas v
+	INNER JOIN productos p
+		ON (v.IdProducto = p.IdProducto)
+	INNER JOIN tipoproducto tp
+		ON (p.IdTipoProducto = tp.IdTipoProducto)
+WHERE v.Outlier = 1
+GROUP BY tp.TipoProducto
+ORDER BY tp.TipoProducto;
+
+SELECT co.TipoProducto, co.PromedioConOutliers, so.PromedioSinOutliers
+FROM (
+	SELECT tp.TipoProducto, AVG(v.Precio * v.Cantidad) AS PromedioConOutliers FROM ventas v
+		INNER JOIN productos p
+			ON (v.IdProducto = p.IdProducto)
+		INNER JOIN tipoproducto tp
+			ON (p.IdTipoProducto = tp.IdTipoProducto)
+	GROUP BY tp.TipoProducto
+	ORDER BY tp.TipoProducto) co
+INNER JOIN (
+	SELECT tp.TipoProducto, AVG(v.Precio * v.Cantidad) AS PromedioSinOutliers FROM ventas v
+		INNER JOIN productos p
+			ON (v.IdProducto = p.IdProducto)
+		INNER JOIN tipoproducto tp
+			ON (p.IdTipoProducto = tp.IdTipoProducto)
+	WHERE v.Outlier = 1
+	GROUP BY tp.TipoProducto
+	ORDER BY tp.TipoProducto) so
+ON (co.TipoProducto = so.TipoProducto);
+
+-- KPI: Margen de Ganancia por producto superior a 20%
+
+SELECT 	p.producto,
+		SUM(v.Precio * v.Cantidad * v.Outlier)	AS SumaVentas,
+        SUM(v.Outlier)							AS SumaCantidad,
+        SUM(v.Precio * v.Cantidad)				AS SumaVentasOutliers,
+        COUNT(*)								AS SumaCantidadOutliers
+FROM ventas v
+INNER JOIN productos p
+ON (v.IdProducto = p.IdProducto)
+GROUP BY p.Producto
+ORDER BY p.Producto;
+
+SELECT 	p.Producto,
+		SUM(c.Precio * c.Cantidad)				AS SumaCompras,
+        COUNT(*)								AS SumaCantidad
+FROM compras c
+INNER JOIN productos p
+ON (c.IdProducto = p.IdProducto)
+GROUP BY p.Producto
+ORDER BY p.Producto;
+
+SELECT 	ve.producto,
+		ve.SumaVentas,
+		ve.SumaCantidad,
+		ve.SumaVentasOutliers,
+		ve.SumaCantidadOutliers,
+        co.SumaCompras,
+        co.SumaCantidad,
+        ((ve.SumaVentas / co.SumaCompras - 1) * 100) AS Margen
+FROM (
+	SELECT 	p.producto,
+		SUM(v.Precio * v.Cantidad * v.Outlier)	AS SumaVentas,
+        SUM(v.Outlier)							AS SumaCantidad,
+        SUM(v.Precio * v.Cantidad)				AS SumaVentasOutliers,
+        COUNT(*)								AS SumaCantidadOutliers
+	FROM ventas v
+		INNER JOIN productos p
+			ON (v.IdProducto = p.IdProducto)
+	GROUP BY p.Producto
+	ORDER BY p.Producto) ve
+INNER JOIN (
+	SELECT 	p.Producto,
+		SUM(c.Precio * c.Cantidad)				AS SumaCompras,
+        COUNT(*)								AS SumaCantidad
+	FROM compras c
+		INNER JOIN productos p
+			ON (c.IdProducto = p.IdProducto)
+	GROUP BY p.Producto
+	ORDER BY p.Producto) co
+ON (ve.Producto = co.Producto)
+ORDER BY Margen DESC;
